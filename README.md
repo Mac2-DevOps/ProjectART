@@ -1,3 +1,3 @@
-# ProjectArt
+# SEMCode
 
-DevOps Java application project.
+Hi all
