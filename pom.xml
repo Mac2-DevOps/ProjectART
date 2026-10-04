@@ -21,6 +21,7 @@
                 <configuration>
                     <archive>
                         <manifest>
+                            <addClasspath>true</addClasspath>
                             <mainClass>com.napier.sem.App</mainClass>
                         </manifest>
                     </archive>
