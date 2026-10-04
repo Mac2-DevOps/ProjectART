@@ -1,7 +1,1 @@
-package com.napier.sem;
-
-public class App {
-    public static void main(String[] args) {
-        System.out.println("Best father and Husband - Pipeline Test");
-    }
-}
+package com.napier.sem; import com.mongodb.client.MongoClient; import com.mongodb.client.MongoClients; import com.mongodb.client.MongoDatabase; import com.mongodb.client.MongoCollection; import org.bson.Document; public class App { public static void main(String[] args) { String mongoHost = System.getenv("MONGO_HOST") != null ? System.getenv("MONGO_HOST") : "localhost"; try (MongoClient mongoClient = MongoClients.create("mongodb://" + mongoHost + ":27017")) { MongoDatabase database = mongoClient.getDatabase("test"); MongoCollection<Document> collection = database.getCollection("testCollection"); System.out.println("Successfully connected to MongoDB!"); } catch (Exception e) { System.out.println("Error connecting to MongoDB: " + e.getMessage()); } } }
