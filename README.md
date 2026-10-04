@@ -1,5 +1,5 @@
-# SEMCode
+# ProjectART
 
-[![workflow](https://github.com/<UserName>/ProjectART/actions/workflows/main.yml/badge.svg)](https://github.com/<UserName>/ProjectART/actions/workflows/main.yml)
+![Build Status](https://github.com/Mac2-DevOps/ProjectART/actions/workflows/main.yml/badge.svg?branch=master)
 
-Hi all
+Semantics and software engineering group project.
