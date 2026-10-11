@@ -1,8 +1,5 @@
 package com.napier.sem;
 
-/**
- * Represents an employee
- */
 public class Employee
 {
     /**
@@ -11,32 +8,32 @@ public class Employee
     public int emp_no;
 
     /**
-     * Employee's first name
+     * First name
      */
     public String first_name;
 
     /**
-     * Employee's last name
+     * Last name
      */
     public String last_name;
 
     /**
-     * Employee's job title
+     * Job title
      */
     public String title;
 
     /**
-     * Employee's salary
+     * Salary
      */
     public int salary;
 
     /**
-     * Employee's current department
+     * Department name
      */
     public String dept_name;
 
     /**
-     * Employee's manager
+     * Manager's name
      */
     public String manager;
 }
