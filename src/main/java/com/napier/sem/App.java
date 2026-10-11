@@ -28,7 +28,7 @@ public class App {
             try {
                 Thread.sleep(30000);
                 con = DriverManager.getConnection(
-                        "jdbc:mysql://db:3306/employees?useSSL=false",
+                        "jdbc:mysql://db:3306/employees?useSSL=false&allowPublicKeyRetrieval=true",
                         "root",
                         "example");
                 System.out.println("Successfully connected");
@@ -62,6 +62,10 @@ public class App {
     public static void main(String[] args) {
         App app = new App();
         app.connect();
+        if (app.con == null) {
+            System.err.println("Could not establish database connection");
+            System.exit(1);
+        }
         app.disconnect();
     }
 }
