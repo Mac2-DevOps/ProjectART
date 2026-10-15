@@ -1,4 +1,4 @@
-  target/
-  .mvn/
-  .idea/
-  
+target/
+.mvn/
+.idea/
+dependency-reduced-pom.xml
