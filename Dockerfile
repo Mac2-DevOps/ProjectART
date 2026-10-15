@@ -1,4 +1,7 @@
 FROM amazoncorretto:17
-COPY ./target/classes/com /tmp/com
-WORKDIR /tmp
-ENTRYPOINT ["java", "com.napier.sem.App"]
+
+WORKDIR /app
+
+COPY target/ProjectArt-1.1.0.jar app.jar
+
+ENTRYPOINT ["java", "-jar", "app.jar"]
