@@ -1,6 +1,7 @@
 services:
   app:
     build: .
+    command: ["255530"]
     depends_on:
       db:
         condition: service_healthy
