@@ -11,8 +11,8 @@ services:
     environment:
       MYSQL_ROOT_PASSWORD: example
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-pexample"]
+      test: [ "CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-pexample" ]
       interval: 5s
       timeout: 3s
       retries: 20
-      start_period: 30s
+      start_period: 5m

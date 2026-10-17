@@ -5,6 +5,7 @@ import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.Scanner;
 
 public class App {
@@ -95,6 +96,60 @@ public class App {
         }
     }
 
+    public ArrayList<Employee> getAllSalaries() {
+        ArrayList<Employee> employees = new ArrayList<>();
+
+        String query =
+                "SELECT employees.emp_no, employees.first_name, "
+                        + "employees.last_name, salaries.salary "
+                        + "FROM employees, salaries "
+                        + "WHERE employees.emp_no = salaries.emp_no "
+                        + "AND salaries.to_date = '9999-01-01' "
+                        + "ORDER BY employees.emp_no ASC";
+
+        if (con == null) {
+            System.out.println("Cannot get salaries: not connected to database");
+            return employees;
+        }
+
+        try (PreparedStatement statement = con.prepareStatement(query);
+             ResultSet result = statement.executeQuery()) {
+
+            while (result.next()) {
+                Employee employee = new Employee();
+                employee.emp_no = result.getInt("emp_no");
+                employee.first_name = result.getString("first_name");
+                employee.last_name = result.getString("last_name");
+                employee.salary = result.getInt("salary");
+
+                employees.add(employee);
+            }
+
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+            System.out.println("Failed to get all salaries");
+        }
+
+        return employees;
+    }
+    public void printSalaries(ArrayList<Employee> employees) {
+        System.out.println("Employee Salary Report");
+        System.out.println("------------------------------------------------------------");
+        System.out.printf("%-10s %-20s %-20s %12s%n",
+                "Emp No", "First Name", "Last Name", "Salary");
+        System.out.println("------------------------------------------------------------");
+
+        for (Employee employee : employees) {
+            System.out.printf("%-10d %-20s %-20s %12d%n",
+                    employee.emp_no,
+                    employee.first_name,
+                    employee.last_name,
+                    employee.salary);
+        }
+
+        System.out.println("------------------------------------------------------------");
+        System.out.println("Total employees: " + employees.size());
+    }
     public void displayEmployee(Employee employee) {
         if (employee == null) {
             System.out.println("Employee not found.");
@@ -184,10 +239,11 @@ public class App {
             System.out.println("Choose an option:");
             System.out.println("1. View employee details");
             System.out.println("2. Salary report by role");
+            System.out.println("3. All current salaries");
 
             String choice = args.length > 0 ? args[0] : scanner.nextLine().trim();
 
-                if ("2".equals(choice)) {
+            if ("2".equals(choice)) {
                 String title;
 
                 if (args.length > 1) {
@@ -202,6 +258,10 @@ public class App {
                 } else {
                     app.getSalariesByRole(title);
                 }
+            } else if ("3".equals(choice)) {
+                ArrayList<Employee> employees = app.getAllSalaries();
+                System.out.println("Employees retrieved: " + employees.size());
+                app.printSalaries(employees);
             } else {
                 int employeeId;
 
