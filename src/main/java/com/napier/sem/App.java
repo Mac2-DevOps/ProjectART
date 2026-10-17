@@ -6,6 +6,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Scanner;
 
 public class App {
     private Connection con = null;
@@ -165,6 +166,53 @@ public class App {
                         + "Manager: " + employee.manager + "\n");
     }
 
+    public void getSalariesByRole(String title) {
+        String query =
+                "SELECT employees.emp_no, employees.first_name, "
+                        + "employees.last_name, salaries.salary "
+                        + "FROM employees, salaries, titles "
+                        + "WHERE employees.emp_no = salaries.emp_no "
+                        + "AND employees.emp_no = titles.emp_no "
+                        + "AND salaries.to_date = '9999-01-01' "
+                        + "AND titles.to_date = '9999-01-01' "
+                        + "AND titles.title = ? "
+                        + "ORDER BY employees.emp_no ASC";
+
+        if (con == null) {
+            System.out.println("Cannot retrieve salaries: not connected to database");
+            return;
+        }
+
+        try (PreparedStatement statement = con.prepareStatement(query)) {
+            statement.setString(1, title);
+
+            try (ResultSet result = statement.executeQuery()) {
+                System.out.println("\nSalary report for role: " + title);
+                System.out.println("----------------------------------------");
+
+                boolean found = false;
+
+                while (result.next()) {
+                    found = true;
+
+                    System.out.println(
+                            result.getInt("emp_no") + " "
+                                    + result.getString("first_name") + " "
+                                    + result.getString("last_name")
+                                    + " | Salary: "
+                                    + result.getInt("salary"));
+                }
+
+                if (!found) {
+                    System.out.println("No employees found for role: " + title);
+                }
+            }
+        } catch (SQLException e) {
+            System.out.println("Failed to retrieve salary report");
+            System.out.println(e.getMessage());
+        }
+    }
+
     public void disconnect() {
         if (con != null) {
             try {
@@ -187,11 +235,51 @@ public class App {
             System.exit(1);
         }
 
-        ArrayList<Employee> employees = app.getAllSalaries();
-        System.out.println("Employees retrieved: " + employees.size());
+        try (Scanner scanner = new Scanner(System.in)) {
+            System.out.println("Choose an option:");
+            System.out.println("1. View employee details");
+            System.out.println("2. Salary report by role");
+            System.out.println("3. All current salaries");
 
-        app.printSalaries(employees);
+            String choice = args.length > 0 ? args[0] : scanner.nextLine().trim();
 
-        app.disconnect();
+            if ("2".equals(choice)) {
+                String title;
+
+                if (args.length > 1) {
+                    title = args[1].trim();
+                } else {
+                    System.out.print("Enter job role (for example, Engineer): ");
+                    title = scanner.nextLine().trim();
+                }
+
+                if (title.isEmpty()) {
+                    System.out.println("Role cannot be empty.");
+                } else {
+                    app.getSalariesByRole(title);
+                }
+            } else if ("3".equals(choice)) {
+                ArrayList<Employee> employees = app.getAllSalaries();
+                System.out.println("Employees retrieved: " + employees.size());
+                app.printSalaries(employees);
+            } else {
+                int employeeId;
+
+                if ("1".equals(choice) || choice.isEmpty()) {
+                    System.out.print("Enter employee ID (default 255530): ");
+                    String input = scanner.nextLine().trim();
+                    employeeId = input.isEmpty() ? 255530 : Integer.parseInt(input);
+                } else {
+                    employeeId = Integer.parseInt(choice);
+                }
+
+                Employee employee = app.getEmployee(employeeId);
+                app.displayEmployee(employee);
+            }
+        } catch (NumberFormatException e) {
+            System.out.println("Invalid employee ID or option.");
+        } finally {
+            app.disconnect();
+        }
     }
 }
