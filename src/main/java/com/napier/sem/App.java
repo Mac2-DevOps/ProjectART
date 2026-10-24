@@ -11,6 +11,11 @@ import java.util.Scanner;
 public class App {
     private Connection con = null;
 
+    /**
+     * Connects the application to the MySQL employees database.
+     * Retries the connection if the database is not ready and stops
+     * after the maximum number of attempts.
+     */
     public void connect() {
         try {
             Class.forName("com.mysql.cj.jdbc.Driver");
@@ -47,6 +52,12 @@ public class App {
         System.out.println("Could not connect to database after retries");
     }
 
+    /**
+     * Retrieves an employee's details using their employee ID.
+     *
+     * @param id the employee's ID
+     * @return the employee and their department details, or null if not found
+     */
 
     public Employee getEmployee(int id) {
         String query =
@@ -123,6 +134,16 @@ public class App {
         }
     }
 
+    /**
+     * Retrieves an employee using their first and last names.
+     * If multiple employees have the same name, returns the one
+     * with the lowest employee ID.
+     *
+     * @param first_name the employee's first name
+     * @param last_name the employee's last name
+     * @return the employee found, or null if no matching employee exists
+     */
+
     public Employee getEmployee(String first_name, String last_name) {
         String query =
                 "SELECT emp_no FROM employees "
@@ -153,6 +174,12 @@ public class App {
         return null;
     }
 
+    /**
+     * Retrieves a department by its name, including its current manager.
+     *
+     * @param dept_name the name of the department to retrieve
+     * @return the department and its manager, or null if not found
+     */
 
     public Department getDepartment(String dept_name) {
         String query =
@@ -208,6 +235,15 @@ public class App {
 
         return null;
     }
+
+    /**
+     * Retrieves employees and their current salaries for a department.
+     * The results are ordered by employee ID.
+     *
+     * @param dept the department whose employees and salaries are requested
+     * @return a list of employees with their current salaries, or an empty
+     *         list if the department is invalid or no results are found
+     */
 
     public ArrayList<Employee> getSalariesByDepartment(Department dept) {
         ArrayList<Employee> employees = new ArrayList<>();
@@ -320,6 +356,13 @@ public class App {
         System.out.println("------------------------------------------------------------");
     }
 
+    /**
+     * Displays an employee's details, including their salary,
+     * department, and department manager.
+     *
+     * @param employee the employee whose details will be displayed
+     */
+
     public void displayEmployee(Employee employee) {
         if (employee == null) {
             System.out.println("Employee not found.");
@@ -398,6 +441,9 @@ public class App {
         }
     }
 
+    /**
+     * Closes the connection to the MySQL database when it is open.
+     */
     public void disconnect() {
         if (con != null) {
             try {
