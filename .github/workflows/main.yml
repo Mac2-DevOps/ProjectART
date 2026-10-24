@@ -20,8 +20,11 @@ jobs:
           distribution: 'temurin'
           cache: maven
 
-      - name: Build with Maven
-        run: mvn -B clean package
+      - name: Run Unit Tests
+        run: mvn -B -Dtest=com.napier.sem.AppTest test
+
+      - name: Package Application
+        run: mvn -B package -DskipTests
 
       - name: Run Docker Compose integration test
         run: docker compose up --build --abort-on-container-exit --exit-code-from app
