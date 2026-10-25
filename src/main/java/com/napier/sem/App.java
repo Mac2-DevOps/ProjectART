@@ -81,8 +81,11 @@ public class App {
 
             try (ResultSet result = statement.executeQuery()) {
                 if (!result.next()) {
+                    System.out.println("DEBUG: No employee found for ID " + id);
                     return null;
                 }
+
+                System.out.println("DEBUG: Employee found for ID " + id);
 
                 Employee employee = new Employee();
                 employee.emp_no = result.getInt("emp_no");
