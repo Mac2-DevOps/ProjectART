@@ -1,51 +1,97 @@
-  IntegrationTests:
-    name: Run Integration Tests
-    runs-on: ubuntu-22.04
 
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v5
-        with:
-          submodules: recursive
+  name: Build and Test ProjectArt
 
-      - name: Set up JDK 17
-        uses: actions/setup-java@v5
-        with:
-          java-version: '17'
-          distribution: 'temurin'
-          cache: maven
+  on: [push, pull_request]
 
-      - name: Start MySQL database
-        run: docker compose up --build -d db
+  jobs:
+    UnitTests:
+      name: Run Unit Tests
+      runs-on: ubuntu-22.04
 
-      - name: Wait for MySQL to become healthy
-        shell: bash
-        run: |
-          for i in {1..60}; do
-            DB_CONTAINER=$(docker compose ps -q db)
-            if [ -n "$DB_CONTAINER" ] && [ "$(docker inspect --format='{{.State.Health.Status}}' "$DB_CONTAINER" 2>/dev/null)" = "healthy" ]; then
-              echo "MySQL is healthy"
-              exit 0
-            fi
-            sleep 5
-          done
-          docker compose logs db
-          echo "MySQL did not become healthy in time"
-          exit 1
+      steps:
+        - name: Checkout code
+          uses: actions/checkout@v5
+          with:
+            submodules: recursive
 
-      - name: Check MySQL container and employee data
-        run: |
-          docker compose ps
-          docker compose port db 3306
-          docker compose exec -T db mysql -uroot -pexample -D employees -e "SELECT emp_no, first_name, last_name FROM employees WHERE emp_no = 10001;"
+        - name: Set up JDK 17
+          uses: actions/setup-java@v5
+          with:
+            java-version: '17'
+            distribution: 'temurin'
+            cache: maven
 
-      - name: Run Integration Tests
-        run: mvn -B verify
+        - name: Run Unit Tests
+          run: mvn -B -Dtest=com.napier.sem.AppTest test
 
-      - name: Show database logs
-        if: always()
-        run: docker compose logs db
+    IntegrationTests:
+      name: Run Integration Tests
+      runs-on: ubuntu-22.04
 
-      - name: Stop Docker Compose
-        if: always()
-        run: docker compose down
+      steps:
+        - name: Checkout code
+          uses: actions/checkout@v5
+          with:
+            submodules: recursive
+
+        - name: Set up JDK 17
+          uses: actions/setup-java@v5
+          with:
+            java-version: '17'
+            distribution: 'temurin'
+            cache: maven
+
+        - name: Start MySQL database
+          run: docker compose up --build -d db
+
+        - name: Wait for MySQL to become healthy
+          shell: bash
+          run: |
+            for i in {1..60}; do
+              DB_CONTAINER=$(docker compose ps -q db)
+              if [ -n "$DB_CONTAINER" ] && [ "$(docker inspect --format='{{.State.Health.Status}}' "$DB_CONTAINER" 2>/dev/null)" = "healthy" ]; then
+                echo "MySQL is healthy"
+                exit 0
+              fi
+              sleep 5
+            done
+            docker compose logs db
+            echo "MySQL did not become healthy in time"
+            exit 1
+
+        - name: Check MySQL container and employee data
+          run: |
+            docker compose ps
+            docker compose port db 3306
+            docker compose exec -T db mysql -uroot -pexample -D employees -e "SELECT emp_no, first_name, last_name FROM employees WHERE emp_no = 10001;"
+
+        - name: Run Integration Tests
+          run: mvn -B verify
+
+        - name: Show database logs
+          if: always()
+          run: docker compose logs db
+
+        - name: Stop Docker Compose
+          if: always()
+          run: docker compose down
+
+    Build:
+      name: Package Application
+      runs-on: ubuntu-22.04
+
+      steps:
+        - name: Checkout code
+          uses: actions/checkout@v5
+          with:
+            submodules: recursive
+
+        - name: Set up JDK 17
+          uses: actions/setup-java@v5
+          with:
+            java-version: '17'
+            distribution: 'temurin'
+            cache: maven
+
+        - name: Package Application
+          run: mvn -B package -DskipTests
