@@ -9,8 +9,9 @@ import java.sql.SQLException;
 public class App {
     private Connection con = null;
 
-    public void connect() {
+    public void connect(String location, int delay) {
         try {
+            // Load database driver
             Class.forName("com.mysql.cj.jdbc.Driver");
         } catch (ClassNotFoundException e) {
             System.out.println("Could not load SQL driver");
@@ -18,27 +19,32 @@ public class App {
         }
 
         int retries = 10;
+
         for (int i = 0; i < retries; i++) {
             System.out.println("Connecting to database...");
 
             try {
+                // Wait for the database to start
+                Thread.sleep(delay);
+
+                // Connect to the database
                 con = DriverManager.getConnection(
-                        "jdbc:mysql://db:3306/employees?useSSL=false&allowPublicKeyRetrieval=true",
+                        "jdbc:mysql://" + location
+                                + "/employees?allowPublicKeyRetrieval=true&useSSL=false",
                         "root",
                         "example");
+
                 System.out.println("Successfully connected");
                 return;
+
             } catch (SQLException e) {
                 System.out.println("Failed to connect to database attempt " + (i + 1));
                 System.out.println(e.getMessage());
 
-                try {
-                    Thread.sleep(5000);
-                } catch (InterruptedException interrupted) {
-                    Thread.currentThread().interrupt();
-                    System.out.println("Database connection retry interrupted");
-                    return;
-                }
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                System.out.println("Database connection retry interrupted");
+                return;
             }
         }
 
@@ -125,15 +131,20 @@ public class App {
 
     public static void main(String[] args) {
         App app = new App();
-        app.connect();
+
+        if (args.length < 2) {
+            app.connect("localhost:33060", 1000);
+        } else {
+            app.connect(args[0], Integer.parseInt(args[1]));
+        }
 
         if (app.con == null) {
             System.err.println("Could not establish database connection");
             System.exit(1);
         }
 
-        int employeeId = args.length > 0
-                ? Integer.parseInt(args[0])
+        int employeeId = args.length > 2
+                ? Integer.parseInt(args[2])
                 : 255530;
 
         Employee employee = app.getEmployee(employeeId);
