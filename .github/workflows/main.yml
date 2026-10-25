@@ -45,16 +45,7 @@ jobs:
 
       - name: Wait for MySQL to become healthy
         run: |
-          for i in {1..60}; do
-            if [ "$(docker inspect --format='{{.State.Health.Status}}' projectart-db-1 2>/dev/null)" = "healthy" ]; then
-              echo "MySQL is healthy"
-              exit 0
-            fi
-            sleep 5
-          done
-          docker compose logs db
-          echo "MySQL did not become healthy in time"
-          exit 1
+          docker compose exec -T db mysql -uroot -pexample -D employees -e "SELECT emp_no, first_name, last_name FROM employees WHERE emp_no = 10001;"
 
       - name: Run Integration Tests
         run: mvn -B verify
