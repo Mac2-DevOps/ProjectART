@@ -11,7 +11,7 @@ class AppIntegrationTest {
         App app = new App();
 
         // Connect to the database running in Docker
-        app.connect("localhost:33060", 1000);
+        app.connect("localhost:33061", 1000);
 
         try {
             Employee employee = app.getEmployee(10001);
