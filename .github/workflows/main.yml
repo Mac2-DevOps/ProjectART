@@ -40,33 +40,34 @@ jobs:
           distribution: 'temurin'
           cache: maven
 
-      - - name: Start MySQL database
-      - run: docker compose up --build -d db
+      - name: Start MySQL database
+        run: docker compose up --build -d db
 
       - name: Wait for MySQL to become healthy
-      - run: |
-      - for i in {1..60}; do
-      - DB_CONTAINER=$(docker compose ps -q db)
-      - if [ -n "$DB_CONTAINER" ] && [ "$(docker inspect --format='{{.State.Health.Status}}' "$DB_CONTAINER" 2>/dev/null)" = "healthy" ]; then
-      - echo "MySQL is healthy"
-      - exit 0
-      - fi
-      - sleep 5
-      - done
-      - docker compose logs db
-      - echo "MySQL did not become healthy in time"
-      - exit 1
+        shell: bash
+        run: |
+          for i in {1..60}; do
+            DB_CONTAINER=$(docker compose ps -q db)
+            if [ -n "$DB_CONTAINER" ] && [ "$(docker inspect --format='{{.State.Health.Status}}' "$DB_CONTAINER" 2>/dev/null)" = "healthy" ]; then
+              echo "MySQL is healthy"
+              exit 0
+            fi
+            sleep 5
+          done
+          docker compose logs db
+          echo "MySQL did not become healthy in time"
+          exit 1
 
       - name: Check employee data in MySQL
-      - run: |
-      - docker compose exec -T db mysql -uroot -pexample -D employees -e "SELECT emp_no, first_name, last_name FROM employees WHERE emp_no = 10001;"
+        run: |
+          docker compose exec -T db mysql -uroot -pexample -D employees -e "SELECT emp_no, first_name, last_name FROM employees WHERE emp_no = 10001;"
 
       - name: Run Integration Tests
-      - run: mvn -B verify
+        run: mvn -B verify
 
       - name: Stop Docker Compose
-      - if: always()
-      - run: docker compose down
+        if: always()
+        run: docker compose down
   Build:
     name: Package Application
     runs-on: ubuntu-22.04
