@@ -95,8 +95,10 @@
           run: docker compose down
 
     Build:
-      name: Package Application
+      name: Package and Release Application
       runs-on: ubuntu-22.04
+      permissions:
+        contents: write
 
       steps:
         - name: Checkout code
@@ -113,3 +115,11 @@
 
         - name: Package Application
           run: mvn -B package -DskipTests
+
+        - name: Publish GitHub Release
+          uses: softprops/action-gh-release@v2
+          with:
+            tag_name: v${{ github.run_number }}
+            name: Release v${{ github.run_number }}
+            body: Automated release created by GitHub Actions.
+            files: target/ProjectArt-1.1.0.jar
