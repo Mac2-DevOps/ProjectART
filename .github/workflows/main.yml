@@ -64,6 +64,24 @@
             docker compose ps
             docker compose port db 3306
             docker compose exec -T db mysql -uroot -pexample -D employees -e "SELECT emp_no, first_name, last_name FROM employees WHERE emp_no = 10001;"
+            timeout 5 bash -c '</dev/tcp/127.0.0.1/33061' && echo "Host port is reachable" || (echo "Host port is NOT reachable" && exit 1)
+
+        - name: Test MySQL connection from runner
+          run: |
+            python3 - <<'PY'
+            import socket
+
+            for host in ("127.0.0.1", "localhost"):
+                print(f"Testing MySQL handshake via {host}:33061")
+                try:
+                    with socket.create_connection((host, 33061), timeout=5) as conn:
+                        conn.settimeout(5)
+                        greeting = conn.recv(128)
+                        print(f"Received {len(greeting)} bytes from MySQL")
+                        print(f"Handshake begins with: {greeting[:20].hex()}")
+                except Exception as error:
+                    print(f"Connection failed: {error}")
+            PY
 
         - name: Run Integration Tests
           run: mvn -B verify
