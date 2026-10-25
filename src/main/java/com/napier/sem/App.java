@@ -1,4 +1,4 @@
-package com.napier.sem;
+        package com.napier.sem;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -39,7 +39,9 @@ public class App {
 
             } catch (SQLException e) {
                 System.out.println("Failed to connect to database attempt " + (i + 1));
-                System.out.println(e.getMessage());
+
+                // Print the full SQL exception for debugging
+                e.printStackTrace();
 
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
