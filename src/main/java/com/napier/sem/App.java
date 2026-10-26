@@ -5,6 +5,9 @@ import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 
 public class App {
     private Connection con = null;
@@ -105,6 +108,101 @@ public class App {
         }
     }
 
+    public java.util.ArrayList<Employee> getSalariesByRole() {
+        java.util.ArrayList<Employee> employees = new java.util.ArrayList<>();
+
+        String query =
+                "SELECT e.emp_no, e.first_name, e.last_name, "
+                        + "t.title, s.salary, d.dept_name, "
+                        + "CONCAT_WS(' ', manager.first_name, manager.last_name) AS manager "
+                        + "FROM employees e "
+                        + "JOIN titles t ON e.emp_no = t.emp_no "
+                        + "AND t.to_date = '9999-01-01' "
+                        + "JOIN salaries s ON e.emp_no = s.emp_no "
+                        + "AND s.to_date = '9999-01-01' "
+                        + "LEFT JOIN dept_emp de ON e.emp_no = de.emp_no "
+                        + "AND de.to_date = '9999-01-01' "
+                        + "LEFT JOIN departments d ON de.dept_no = d.dept_no "
+                        + "LEFT JOIN dept_manager dm ON de.dept_no = dm.dept_no "
+                        + "AND dm.to_date = '9999-01-01' "
+                        + "LEFT JOIN employees manager ON dm.emp_no = manager.emp_no "
+                        + "WHERE t.title = 'Manager'";
+
+        if (con == null) {
+            System.out.println("Cannot get Manager salaries: not connected to database");
+            return employees;
+        }
+
+        try (PreparedStatement statement = con.prepareStatement(query);
+             ResultSet result = statement.executeQuery()) {
+
+            while (result.next()) {
+                Employee employee = new Employee();
+                employee.emp_no = result.getInt("emp_no");
+                employee.first_name = result.getString("first_name");
+                employee.last_name = result.getString("last_name");
+                employee.title = result.getString("title");
+                employee.salary = result.getInt("salary");
+                employee.dept_name = result.getString("dept_name");
+                employee.manager = result.getString("manager");
+
+                employees.add(employee);
+            }
+        } catch (SQLException e) {
+            System.out.println("Failed to retrieve Manager salaries");
+            e.printStackTrace();
+        }
+
+        return employees;
+    }
+
+    public void outputEmployees(
+            java.util.ArrayList<Employee> employees, String filename) {
+
+        File directory = new File("./reports");
+
+        if (!directory.exists() && !directory.mkdirs()) {
+            System.out.println("Could not create reports directory");
+            return;
+        }
+
+        File file = new File(directory, filename);
+
+        try (FileWriter writer = new FileWriter(file)) {
+            writer.write("# Manager Salaries Report\n\n");
+            writer.write("| Emp No | First Name | Last Name | Title | Salary | Department | Manager |\n");
+            writer.write("|---:|---|---|---|---:|---|---|\n");
+
+            for (Employee employee : employees) {
+                writer.write("| " + employee.emp_no
+                        + " | " + safeMarkdown(employee.first_name)
+                        + " | " + safeMarkdown(employee.last_name)
+                        + " | " + safeMarkdown(employee.title)
+                        + " | " + employee.salary
+                        + " | " + safeMarkdown(employee.dept_name)
+                        + " | " + safeMarkdown(employee.manager)
+                        + " |\n");
+            }
+
+            System.out.println("Report created: " + file.getAbsolutePath());
+            System.out.println("Employees included: " + employees.size());
+
+        } catch (IOException e) {
+            System.out.println("Failed to write Manager Salaries report");
+            e.printStackTrace();
+        }
+    }
+
+    private String safeMarkdown(String value) {
+        if (value == null) {
+            return "";
+        }
+
+        return value.replace("|", "\\|")
+                .replace("\r", " ")
+                .replace("\n", " ");
+    }
+
     public void displayEmployee(Employee employee) {
         if (employee == null) {
             System.out.println("Employee not found.");
@@ -138,7 +236,7 @@ public class App {
         App app = new App();
 
         if (args.length < 2) {
-            app.connect("localhost:33060", 1000);
+            app.connect("localhost:33061", 1000);
         } else {
             app.connect(args[0], Integer.parseInt(args[1]));
         }
@@ -148,12 +246,19 @@ public class App {
             System.exit(1);
         }
 
-        int employeeId = args.length > 2
-                ? Integer.parseInt(args[2])
-                : 255530;
+        try {
+            int employeeId = args.length > 2
+                    ? Integer.parseInt(args[2])
+                    : 255530;
 
-        Employee employee = app.getEmployee(employeeId);
-        app.displayEmployee(employee);
-        app.disconnect();
+            Employee employee = app.getEmployee(employeeId);
+            app.displayEmployee(employee);
+
+            java.util.ArrayList<Employee> managers = app.getSalariesByRole();
+            app.outputEmployees(managers, "ManagerSalaries.md");
+
+        } finally {
+            app.disconnect();
+        }
     }
 }
